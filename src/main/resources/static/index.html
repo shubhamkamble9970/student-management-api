@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Manager</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; }
+    h1 { color: #1E3A5F; }
+    input { padding: 8px; margin: 5px; width: 200px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 16px; margin: 5px; background: #2E6DA4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #1E3A5F; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { background: #1E3A5F; color: white; padding: 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #ddd; }
+    tr:hover { background: #f0f5fa; }
+    #msg { color: green; font-weight: bold; margin: 10px 0; }
+  </style>
+</head>
+<body>
+
+  <h1>Student Manager</h1>
+
+  <div>
+    <input id="name" placeholder="Name" />
+    <input id="email" placeholder="Email" />
+    <input id="branch" placeholder="Branch" />
+    <button onclick="addStudent()">Add Student</button>
+  </div>
+  <p id="msg"></p>
+
+  <table>
+    <thead>
+      <tr><th>ID</th><th>Name</th><th>Email</th><th>Branch</th><th>Action</th></tr>
+    </thead>
+    <tbody id="studentTable"></tbody>
+  </table>
+
+  <script>
+    const API = "http://localhost:8080/students";
+
+    async function loadStudents() {
+      const res = await fetch(API);
+      const students = await res.json();
+      const tbody = document.getElementById("studentTable");
+      tbody.innerHTML = "";
+      students.forEach(s => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${s.id}</td>
+            <td>${s.name}</td>
+            <td>${s.email}</td>
+            <td>${s.branch}</td>
+            <td><button onclick="deleteStudent(${s.id})">Delete</button></td>
+          </tr>`;
+      });
+    }
+
+    async function addStudent() {
+      const student = {
+        name: document.getElementById("name").value,
+        email: document.getElementById("email").value,
+        branch: document.getElementById("branch").value
+      };
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(student)
+      });
+      document.getElementById("msg").innerText = "Student added!";
+      document.getElementById("name").value = "";
+      document.getElementById("email").value = "";
+      document.getElementById("branch").value = "";
+      loadStudents();
+    }
+
+    async function deleteStudent(id) {
+      await fetch(`${API}/${id}`, { method: "DELETE" });
+      document.getElementById("msg").innerText = "Student deleted!";
+      loadStudents();
+    }
+
+    loadStudents();
+  </script>
+
+</body>
+</html>
